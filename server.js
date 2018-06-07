@@ -1,68 +1,28 @@
-/****************************************************************************
- ****************************************************************************
-    
-    Initialize
-    
-*****************************************************************************
-*****************************************************************************/
-const express        = require("express");
-const exphbs         = require("express-handlebars");
-const path           = require("path");
-const methodOverride = require("method-override");
-const bodyParser     = require("body-parser");
+var express = require('express');
+var bodyParser = require('body-parser');
+var methodOverride = require('method-override')
 
-const app  = express();
-const PORT = process.env.PORT || 3000;
+var app = express();
 
+//Serve static content for the app from the "public" directory in the application directory.
+app.use(express.static(process.cwd() + '/public'));
 
+app.use(bodyParser.urlencoded({
+	extended: false
+}))
+// override with POST having ?_method=DELETE
+app.use(methodOverride('_method'))
+var exphbs = require('express-handlebars');
+app.engine('handlebars', exphbs({
+    defaultLayout: 'main',
+}));
+app.set('view engine', 'handlebars');
 
-/****************************************************************************
- ****************************************************************************
-    
-    Set up views
-    
-*****************************************************************************
-*****************************************************************************/
-// Set public directory
-const directory_public = path.join(__dirname, "public");
-app.use(express.static(directory_public));
+var routes = require('./controllers/burgers_controller.js');
+app.use('/', routes);
 
-// Set up Express to handle parsing data
-app.use(bodyParser.json());
-app.use(bodyParser.text());
-app.use(bodyParser.urlencoded({"extended": false}));
-
-// Set handlebars
-app.engine("handlebars", exphbs({"defaultLayout": "main"}));
-app.set("view engine", "handlebars");
-
-
-
-/****************************************************************************
- ****************************************************************************
-    
-    Set up controllers
-    
-*****************************************************************************
-*****************************************************************************/
-// Override POST methods to handle PATCH and DELETE
-app.use(methodOverride("_method"));
-
-// Set controllers directory
-const directory_controllers = path.join(__dirname, "controllers");
-
-// Talk to the burger controller
-app.use("/", require(
-    path.join(directory_controllers, "burger_controller.js"))
-);
-
-
-
-/****************************************************************************
- ****************************************************************************
-    
-    Listen for connections on the port
-    
-*****************************************************************************
-*****************************************************************************/
-app.listen(PORT, () => console.log(`App listening on ${PORT}.`));
+var port = process.env.PORT || 3000;
+app.listen(PORT, function() {
+    // Log (server-side) when our server has started
+    console.log("Server listening on: http://localhost:" + PORT);
+  });
